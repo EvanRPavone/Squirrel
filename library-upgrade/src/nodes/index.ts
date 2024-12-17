@@ -1,26 +1,20 @@
 import type { NodeTypes } from '@xyflow/react';
-
 import { PositionLoggerNode } from './PositionLoggerNode';
 import { AppNode } from './types';
+import { sampleNodes } from '../data/sampleFlow';
+import PlaceholderNode from './PlaceholderNode';
 
-export const initialNodes: AppNode[] = [
-  { id: 'a', type: 'input', position: { x: 0, y: 0 }, data: { label: 'wire' } },
-  {
-    id: 'b',
-    type: 'position-logger',
-    position: { x: -100, y: 100 },
-    data: { label: 'drag me!' },
-  },
-  { id: 'c', position: { x: 100, y: 100 }, data: { label: 'your ideas' } },
-  {
-    id: 'd',
-    type: 'output',
-    position: { x: 0, y: 200 },
-    data: { label: 'with React Flow' },
-  },
-];
-
+// Register all node types, including placeholders
 export const nodeTypes = {
   'position-logger': PositionLoggerNode,
-  // Add any of your custom nodes here!
+  'ellipse': PlaceholderNode,
+  'rootIf': PlaceholderNode,
+  'add': PlaceholderNode,
+  'else': PlaceholderNode,
 } satisfies NodeTypes;
+
+// Merge sample nodes with any additional custom nodes
+export const initialNodes: AppNode[] = [
+  ...sampleNodes,
+  { id: 'custom-node', type: 'position-logger', position: { x: -100, y: 200 }, data: { label: 'Custom Node' } },
+];

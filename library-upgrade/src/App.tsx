@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, MouseEvent } from 'react';
+import { useCallback, useState, MouseEvent } from 'react';
 import {
   ReactFlow,
   Background,
@@ -9,8 +9,8 @@ import {
   useNodesState,
   useEdgesState,
   type OnConnect,
-  type Edge,
   type Node,
+  type Edge,
   type NodeChange,
   type EdgeChange,
 } from '@xyflow/react';
@@ -93,51 +93,56 @@ export default function App() {
   const addNode = useCallback(() => {
     saveHistory();
     const nodeName = window.prompt('Enter the name of the new node:', 'New Node');
+    const nodeColor = window.prompt('Enter a background color (e.g., #FF5733):', '#89CFF0');
     if (!nodeName) return;
 
     const newNode: AppNode = {
-      id: `node-${nodes.length + 1}`,
-      type: 'default',
+      id: `node-${Date.now()}`,
+      type: 'ellipse',
       position: { x: Math.random() * 250, y: Math.random() * 250 },
-      data: { label: nodeName },
+      data: {
+        label: nodeName,
+        background: nodeColor || '#89CFF0',
+      },
     };
 
     setNodes((nds) => [...nds, newNode]);
-  }, [nodes, setNodes, saveHistory]);
+  }, [setNodes, saveHistory]);
 
-  const saveFlow = useCallback(() => {
-    const flow = { nodes, edges };
-    const flowJSON = JSON.stringify(flow, null, 2);
-    const blob = new Blob([flowJSON], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'flow-state.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [nodes, edges]);
-
-  // Keyboard listeners for Undo (Ctrl+Z) and Redo (Ctrl+Y)
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey || event.metaKey) {
-        if (event.key === 'z') {
-          event.preventDefault();
-          undo();
-        } else if (event.key === 'y') {
-          event.preventDefault();
-          redo();
-        }
+  const changeNodeColor = () => {
+    if (contextMenu?.target === 'node') {
+      const newColor = window.prompt('Enter a color (e.g., #FF5733):', '#89CFF0');
+      if (newColor) {
+        saveHistory();
+        setNodes((nds) =>
+          nds.map((node) =>
+            node.id === contextMenu.targetId
+              ? { ...node, data: { ...node.data, background: newColor } }
+              : node
+          )
+        );
       }
-    };
+      setContextMenu(null);
+    }
+  };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [undo, redo]);
+  const editNodeLabel = () => {
+    if (contextMenu?.target === 'node') {
+      const newLabel = window.prompt('Enter a new label:', 'New Label');
+      if (newLabel) {
+        saveHistory();
+        setNodes((nds) =>
+          nds.map((node) =>
+            node.id === contextMenu.targetId
+              ? { ...node, data: { ...node.data, label: newLabel } }
+              : node
+          )
+        );
+      }
+      setContextMenu(null);
+    }
+  };
 
-  // Context Menu
   const onNodeContextMenu = useCallback((event: MouseEvent, node: Node) => {
     event.preventDefault();
     setContextMenu({
@@ -147,46 +152,26 @@ export default function App() {
     });
   }, []);
 
-  const onEdgeContextMenu = useCallback((event: MouseEvent, edge: Edge) => {
-    event.preventDefault();
-    setContextMenu({
-      position: { x: event.clientX, y: event.clientY },
-      target: 'edge',
-      targetId: edge.id,
-    });
-  }, []);
-
-  const closeContextMenu = useCallback(() => setContextMenu(null), []);
-
   const deleteNode = () => {
     if (contextMenu?.target === 'node') {
       saveHistory();
       setNodes((nds) => nds.filter((node) => node.id !== contextMenu.targetId));
       setEdges((eds) => eds.filter((edge) => edge.source !== contextMenu.targetId && edge.target !== contextMenu.targetId));
-      closeContextMenu();
-    }
-  };
-
-  const deleteEdge = () => {
-    if (contextMenu?.target === 'edge') {
-      saveHistory();
-      setEdges((eds) => eds.filter((edge) => edge.id !== contextMenu.targetId));
-      closeContextMenu();
+      setContextMenu(null);
     }
   };
 
   return (
-    <div style={{ height: '100vh' }} onClick={closeContextMenu}>
+    <div style={{ height: '100vh' }} onClick={() => setContextMenu(null)}>
       <ReactFlow
         nodes={nodes}
-        nodeTypes={nodeTypes}
-        onNodesChange={onNodesChangeWithHistory}
         edges={edges}
+        nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        onNodesChange={onNodesChangeWithHistory}
         onEdgesChange={onEdgesChangeWithHistory}
         onConnect={onConnect}
         onNodeContextMenu={onNodeContextMenu}
-        onEdgeContextMenu={onEdgeContextMenu}
         snapToGrid
         snapGrid={[20, 20]}
         fitView
@@ -197,12 +182,11 @@ export default function App() {
           <ControlButton onClick={undo}>↩️ Undo</ControlButton>
           <ControlButton onClick={redo}>↪️ Redo</ControlButton>
           <ControlButton onClick={addNode}>➕ Add Node</ControlButton>
-          <ControlButton onClick={saveFlow}>💾 Save Flow</ControlButton>
         </Controls>
       </ReactFlow>
 
       {/* Context Menu */}
-      {contextMenu && (
+      {contextMenu && contextMenu.target === 'node' && (
         <div
           style={{
             position: 'absolute',
@@ -215,8 +199,9 @@ export default function App() {
             zIndex: 1000,
           }}
         >
-          {contextMenu.target === 'node' && <div onClick={deleteNode}>🗑 Delete Node</div>}
-          {contextMenu.target === 'edge' && <div onClick={deleteEdge}>🗑 Delete Edge</div>}
+          <div onClick={editNodeLabel}>📝 Edit Node</div>
+          <div onClick={changeNodeColor}>🎨 Change Color</div>
+          <div onClick={deleteNode}>🗑 Delete Node</div>
         </div>
       )}
     </div>

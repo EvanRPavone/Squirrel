@@ -27,12 +27,6 @@ export default function App() {
 
   const [history, setHistory] = useState<{ nodes: AppNode[]; edges: Edge[] }[]>([]);
   const [redoStack, setRedoStack] = useState<typeof history>([]);
-  const [contextMenu, setContextMenu] = useState<{
-    position: { x: number; y: number };
-    target: 'node' | 'edge' | null;
-    targetId: string | null;
-  } | null>(null);
-
   const [selectedNode, setSelectedNode] = useState<AppNode | null>(null);
 
   const saveHistory = useCallback(() => {
@@ -105,45 +99,14 @@ export default function App() {
       data: {
         label: nodeName,
         background: nodeColor || '#89CFF0',
+        logic: {},
+        parentId: '',
+        ifParentId: '',
       },
     };
 
     setNodes((nds) => [...nds, newNode]);
   }, [setNodes, saveHistory]);
-
-  const changeNodeColor = () => {
-    if (contextMenu?.target === 'node') {
-      const newColor = window.prompt('Enter a color (e.g., #FF5733):', '#89CFF0');
-      if (newColor) {
-        saveHistory();
-        setNodes((nds) =>
-          nds.map((node) =>
-            node.id === contextMenu.targetId
-              ? { ...node, data: { ...node.data, background: newColor } }
-              : node
-          )
-        );
-      }
-      setContextMenu(null);
-    }
-  };
-
-  const editNodeLabel = () => {
-    if (contextMenu?.target === 'node') {
-      const newLabel = window.prompt('Enter a new label:', 'New Label');
-      if (newLabel) {
-        saveHistory();
-        setNodes((nds) =>
-          nds.map((node) =>
-            node.id === contextMenu.targetId
-              ? { ...node, data: { ...node.data, label: newLabel } }
-              : node
-          )
-        );
-      }
-      setContextMenu(null);
-    }
-  };
 
   const onNodeDoubleClick = useCallback((_: MouseEvent, node: AppNode) => {
     setSelectedNode(node);
@@ -151,8 +114,39 @@ export default function App() {
 
   const closeNodePanel = () => setSelectedNode(null);
 
+  const updateNodeData = (key: string, value: string) => {
+    if (selectedNode) {
+      saveHistory();
+      const updatedNodes = nodes.map((node) =>
+        node.id === selectedNode.id
+          ? {
+              ...node,
+              data: {
+                ...node.data,
+                [key]: value,
+              },
+            }
+          : node
+      );
+
+      setNodes(updatedNodes);
+
+      setSelectedNode((prevNode) =>
+        prevNode
+          ? {
+              ...prevNode,
+              data: {
+                ...prevNode.data,
+                [key]: value,
+              },
+            }
+          : null
+      );
+    }
+  };
+
   return (
-    <div style={{ height: '100vh' }} onClick={() => setContextMenu(null)}>
+    <div style={{ height: '100vh' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -161,14 +155,6 @@ export default function App() {
         onNodesChange={onNodesChangeWithHistory}
         onEdgesChange={onEdgesChangeWithHistory}
         onConnect={onConnect}
-        onNodeContextMenu={(event, node) => {
-          event.preventDefault();
-          setContextMenu({
-            position: { x: event.clientX, y: event.clientY },
-            target: 'node',
-            targetId: node.id,
-          });
-        }}
         onNodeDoubleClick={onNodeDoubleClick}
         snapToGrid
         snapGrid={[20, 20]}
@@ -182,25 +168,6 @@ export default function App() {
           <ControlButton onClick={addNode}>➕ Add Node</ControlButton>
         </Controls>
       </ReactFlow>
-
-      {/* Context Menu */}
-      {contextMenu && contextMenu.target === 'node' && (
-        <div
-          style={{
-            position: 'absolute',
-            top: contextMenu.position.y,
-            left: contextMenu.position.x,
-            background: 'white',
-            border: '1px solid #ccc',
-            padding: '10px',
-            boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)',
-            zIndex: 1000,
-          }}
-        >
-          <div onClick={editNodeLabel}>📝 Edit Node</div>
-          <div onClick={changeNodeColor}>🎨 Change Color</div>
-        </div>
-      )}
 
       {/* Node Panel */}
       {selectedNode && (
@@ -219,10 +186,24 @@ export default function App() {
           }}
         >
           <h3>Node Details</h3>
-          <p><strong>ID:</strong> {selectedNode.id}</p>
-          <p><strong>Label:</strong> {selectedNode.data?.label}</p>
-          <p><strong>Background:</strong> {selectedNode.data?.background}</p>
-          <button onClick={closeNodePanel}>Close</button>
+          {Object.keys(selectedNode.data || {}).map((key) => (
+            <div key={key} style={{ marginBottom: '10px' }}>
+              <label htmlFor={`${key}Input`} style={{ display: 'block' }}>
+                {key}:
+              </label>
+              <input
+                id={`${key}Input`}
+                type="text"
+                value={typeof selectedNode.data?.[key] === 'string' || typeof selectedNode.data?.[key] === 'number'
+                  ? selectedNode.data[key]
+                  : ''}
+                onChange={(e) => updateNodeData(key, e.target.value)}
+              />
+            </div>
+          ))}
+          <button onClick={closeNodePanel} style={{ marginTop: '10px' }}>
+            Close
+          </button>
         </div>
       )}
     </div>

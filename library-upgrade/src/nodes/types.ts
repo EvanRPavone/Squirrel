@@ -13,6 +13,7 @@ export type CustomNodeData = {
   ifParentId?: string; // Add ifParentId property
   ifSequenceNo?: number; // Add ifSequenceNo property
   commandHandle?: unknown[]; // Add commandHandle for nodes like 'else' or 'elseif'
+  [key: string]: unknown; // Allow dynamic indexing with string keys
 };
 
 // Define PositionLoggerNode with updated data type

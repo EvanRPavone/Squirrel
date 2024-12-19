@@ -7,6 +7,8 @@ import EllipseNode from './components/EllipseNode';
 import RootIfNode from './components/RootIfNode';
 import AddNode from './components/AddNode';
 import ElseNode from './components/ElseNode';
+import ElseIfNode from './components/ElseIfNode';
+import IfNode from './components/IfNode';
 
 // Register all node types, including placeholders
 export const nodeTypes = {
@@ -15,6 +17,8 @@ export const nodeTypes = {
   'rootIf': RootIfNode,
   'add': AddNode,
   'else': ElseNode,
+  'if': IfNode,
+  'elseif': ElseIfNode,
 } satisfies NodeTypes;
 
 // Merge sample nodes with any additional custom nodes

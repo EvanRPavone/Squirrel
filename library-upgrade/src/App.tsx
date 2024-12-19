@@ -74,22 +74,6 @@ export default function App() {
     [setEdges, saveHistory]
   );
 
-  const onNodesChangeWithHistory = useCallback(
-    (changes: NodeChange<AppNode>[]) => {
-      saveHistory();
-      onNodesChange(changes);
-    },
-    [onNodesChange, saveHistory]
-  );
-
-  const onEdgesChangeWithHistory = useCallback(
-    (changes: EdgeChange[]) => {
-      saveHistory();
-      onEdgesChange(changes);
-    },
-    [onEdgesChange, saveHistory]
-  );
-
   const addNode = useCallback(() => {
     saveHistory();
     const nodeName = window.prompt('Enter the name of the new node:', 'New Node');
@@ -109,69 +93,51 @@ export default function App() {
     setNodes((nds) => [...nds, newNode]);
   }, [setNodes, saveHistory]);
 
-  const changeNodeColor = () => {
-    if (contextMenu?.target === 'node') {
-      const newColor = window.prompt('Enter a color (e.g., #FF5733):', '#89CFF0');
-      if (newColor) {
-        saveHistory();
-        setNodes((nds) =>
-          nds.map((node) =>
-            node.id === contextMenu.targetId
-              ? { ...node, data: { ...node.data, background: newColor } }
-              : node
-          )
-        );
-      }
-      setContextMenu(null);
-    }
-  };
+  const saveFlow = useCallback(() => {
+    const flow = { nodes, edges };
+    const flowJSON = JSON.stringify(flow, null, 2);
+    const blob = new Blob([flowJSON], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'flow-state.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [nodes, edges]);
 
-  const editNodeLabel = () => {
-    if (contextMenu?.target === 'node') {
-      const newLabel = window.prompt('Enter a new label:', 'New Label');
-      if (newLabel) {
-        saveHistory();
-        setNodes((nds) =>
-          nds.map((node) =>
-            node.id === contextMenu.targetId
-              ? { ...node, data: { ...node.data, label: newLabel } }
-              : node
-          )
-        );
-      }
-      setContextMenu(null);
-    }
-  };
+  const loadFlow = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  const changeEdgeColor = () => {
-    if (contextMenu?.target === 'edge') {
-      const newColor = window.prompt('Enter a color for the edge (e.g., #007bff):', '#007bff');
-      if (newColor) {
-        saveHistory();
-        setEdges((eds) =>
-          eds.map((edge) =>
-            edge.id === contextMenu.targetId ? { ...edge, style: { ...edge.style, stroke: newColor } } : edge
-          )
-        );
-      }
-      setContextMenu(null);
-    }
-  };
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const flow = JSON.parse(content);
 
-  const editEdgeLabel = () => {
-    if (contextMenu?.target === 'edge') {
-      const newLabel = window.prompt('Enter a new label for the edge:', 'New Label');
-      if (newLabel) {
-        saveHistory();
-        setEdges((eds) =>
-          eds.map((edge) =>
-            edge.id === contextMenu.targetId ? { ...edge, label: newLabel } : edge
-          )
-        );
+      if (flow.nodes && flow.edges) {
+        setNodes(flow.nodes);
+        setEdges(flow.edges);
       }
-      setContextMenu(null);
-    }
-  };
+    };
+
+    reader.readAsText(file);
+  }, [setNodes, setEdges]);
+
+  const onNodesChangeWithHistory = useCallback(
+    (changes: NodeChange<AppNode>[]) => {
+      saveHistory();
+      onNodesChange(changes);
+    },
+    [onNodesChange, saveHistory]
+  );
+
+  const onEdgesChangeWithHistory = useCallback(
+    (changes: EdgeChange[]) => {
+      saveHistory();
+      onEdgesChange(changes);
+    },
+    [onEdgesChange, saveHistory]
+  );
 
   const onNodeContextMenu = useCallback((event: MouseEvent, node: Node) => {
     event.preventDefault();
@@ -210,6 +176,36 @@ export default function App() {
 
   return (
     <div style={{ height: '100vh' }} onClick={() => setContextMenu(null)}>
+      <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 10 }}>
+        <button
+          onClick={saveFlow}
+          style={{
+            marginRight: '10px',
+            padding: '8px 12px',
+            backgroundColor: '#28a745',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          Save Flow
+        </button>
+        <label
+          style={{
+            padding: '8px 12px',
+            backgroundColor: '#007bff',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          Load Flow
+          <input type="file" accept="application/json" onChange={loadFlow} style={{ display: 'none' }} />
+        </label>
+      </div>
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -227,9 +223,9 @@ export default function App() {
         <Background gap={20} size={1} />
         <MiniMap />
         <Controls>
-          <ControlButton onClick={undo}>↩️ Undo</ControlButton>
-          <ControlButton onClick={redo}>↪️ Redo</ControlButton>
-          <ControlButton onClick={addNode}>➕ Add Node</ControlButton>
+          <ControlButton onClick={undo}>↩️ </ControlButton>
+          <ControlButton onClick={redo}>↪️ </ControlButton>
+          <ControlButton onClick={addNode}>➕ </ControlButton>
         </Controls>
       </ReactFlow>
 
@@ -248,16 +244,16 @@ export default function App() {
         >
           {contextMenu.target === 'node' && (
             <>
-              <div onClick={editNodeLabel}>📝 Edit Node</div>
-              <div onClick={changeNodeColor}>🎨 Change Color</div>
-              <div onClick={deleteNode}>🗑 Delete Node</div>
+              <div>📝</div>
+              <div>🎨</div>
+              <div onClick={deleteNode}>🗑</div>
             </>
           )}
           {contextMenu.target === 'edge' && (
             <>
-              <div onClick={editEdgeLabel}>📝 Edit Edge Label</div>
-              <div onClick={changeEdgeColor}>🎨 Change Edge Color</div>
-              <div onClick={deleteEdge}>🗑 Delete Edge</div>
+              <div>📝</div>
+              <div>🎨</div>
+              <div onClick={deleteEdge}>🗑</div>
             </>
           )}
         </div>

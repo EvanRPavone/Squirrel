@@ -24,6 +24,7 @@ export default function RootIfNode({ data }: NodeProps<CustomNode>) {
       {label}
       <Handle type="target" position={Position.Top} id="top" />
       <Handle type="source" position={Position.Right} id="rootIfright" /> {/* Correct ID */}
+      <Handle type="source" position={Position.Bottom} id="rootIfbottom" />
     </div>
   );
 }

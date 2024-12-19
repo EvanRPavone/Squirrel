@@ -143,6 +143,36 @@ export default function App() {
     }
   };
 
+  const changeEdgeColor = () => {
+    if (contextMenu?.target === 'edge') {
+      const newColor = window.prompt('Enter a color for the edge (e.g., #007bff):', '#007bff');
+      if (newColor) {
+        saveHistory();
+        setEdges((eds) =>
+          eds.map((edge) =>
+            edge.id === contextMenu.targetId ? { ...edge, style: { ...edge.style, stroke: newColor } } : edge
+          )
+        );
+      }
+      setContextMenu(null);
+    }
+  };
+
+  const editEdgeLabel = () => {
+    if (contextMenu?.target === 'edge') {
+      const newLabel = window.prompt('Enter a new label for the edge:', 'New Label');
+      if (newLabel) {
+        saveHistory();
+        setEdges((eds) =>
+          eds.map((edge) =>
+            edge.id === contextMenu.targetId ? { ...edge, label: newLabel } : edge
+          )
+        );
+      }
+      setContextMenu(null);
+    }
+  };
+
   const onNodeContextMenu = useCallback((event: MouseEvent, node: Node) => {
     event.preventDefault();
     setContextMenu({
@@ -152,11 +182,28 @@ export default function App() {
     });
   }, []);
 
+  const onEdgeContextMenu = useCallback((event: MouseEvent, edge: Edge) => {
+    event.preventDefault();
+    setContextMenu({
+      position: { x: event.clientX, y: event.clientY },
+      target: 'edge',
+      targetId: edge.id,
+    });
+  }, []);
+
   const deleteNode = () => {
     if (contextMenu?.target === 'node') {
       saveHistory();
       setNodes((nds) => nds.filter((node) => node.id !== contextMenu.targetId));
       setEdges((eds) => eds.filter((edge) => edge.source !== contextMenu.targetId && edge.target !== contextMenu.targetId));
+      setContextMenu(null);
+    }
+  };
+
+  const deleteEdge = () => {
+    if (contextMenu?.target === 'edge') {
+      saveHistory();
+      setEdges((eds) => eds.filter((edge) => edge.id !== contextMenu.targetId));
       setContextMenu(null);
     }
   };
@@ -172,6 +219,7 @@ export default function App() {
         onEdgesChange={onEdgesChangeWithHistory}
         onConnect={onConnect}
         onNodeContextMenu={onNodeContextMenu}
+        onEdgeContextMenu={onEdgeContextMenu}
         snapToGrid
         snapGrid={[20, 20]}
         fitView
@@ -185,8 +233,7 @@ export default function App() {
         </Controls>
       </ReactFlow>
 
-      {/* Context Menu */}
-      {contextMenu && contextMenu.target === 'node' && (
+      {contextMenu && (
         <div
           style={{
             position: 'absolute',
@@ -199,9 +246,20 @@ export default function App() {
             zIndex: 1000,
           }}
         >
-          <div onClick={editNodeLabel}>📝 Edit Node</div>
-          <div onClick={changeNodeColor}>🎨 Change Color</div>
-          <div onClick={deleteNode}>🗑 Delete Node</div>
+          {contextMenu.target === 'node' && (
+            <>
+              <div onClick={editNodeLabel}>📝 Edit Node</div>
+              <div onClick={changeNodeColor}>🎨 Change Color</div>
+              <div onClick={deleteNode}>🗑 Delete Node</div>
+            </>
+          )}
+          {contextMenu.target === 'edge' && (
+            <>
+              <div onClick={editEdgeLabel}>📝 Edit Edge Label</div>
+              <div onClick={changeEdgeColor}>🎨 Change Edge Color</div>
+              <div onClick={deleteEdge}>🗑 Delete Edge</div>
+            </>
+          )}
         </div>
       )}
     </div>

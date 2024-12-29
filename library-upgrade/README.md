@@ -1,54 +1,116 @@
-![](https://github.com/xyflow/web/blob/main/assets/codesandbox-header-ts.png?raw=true)
 
-# React Flow starter (Vite + TS)
+# React Flow Library Upgrade
 
-We've put together this template to serve as a starting point for folks
-interested in React Flow. You can use this both as a base for your own React
-Flow applications, or for small experiments or bug reports.
+This project is a React Flow application enhanced with custom node types, logic handling, and additional features. It allows users to create, edit, and manage a flow of nodes and edges visually.
 
-**TypeScript not your thing?** We also have a vanilla JavaScript starter template,
-just for you!
+## Features
 
-## Getting up and running
+- **Custom Node Types**: Includes `ellipse`, `rootIf`, `if`, `elseif`, `add`, and `else` nodes with unique designs.
+- **Custom Edge Type**: Implements a `custom` edge type for added styling and interaction.
+- **Undo/Redo Functionality**: Easily revert or reapply actions to maintain workflow flexibility.
+- **Node Panel**: Double-click a node to open a panel where you can:
+  - Edit the node label.
+  - Change the node background color.
+  - Update node-specific logic and attributes (`logic`, `parentId`, etc.).
+- **Context Menu**: Right-click on nodes or edges to access a menu for editing or deleting them.
+- **Save/Load Flow**: Save the current flow state to a JSON file or load an existing one.
+- **Dynamic Node Addition**: Add new nodes dynamically through a button or other interaction.
 
-You can get this template without forking/cloning the repo using `degit`:
+## Requirements
 
-```bash
-npx degit xyflow/vite-react-flow-template your-app-name
-```
+- Node.js >= 14.x
+- npm >= 6.x
 
-The template contains mostly the minimum dependencies to get up and running, but
-also includes eslint and some additional rules to help you write React code that
-is less likely to run into issues:
+## Installation
 
-```bash
-npm install # or `pnpm install` or `yarn install`
-```
+1. Clone the repository:
 
-Vite is a great development server and build tool that we recommend our users to
-use. You can start a development server with:
+   ```bash
+   git clone <repository-url>
+   cd <project-folder>
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+## Running the Project
+
+To start the development server:
 
 ```bash
 npm run dev
 ```
 
-While the development server is running, changes you make to the code will be
-automatically reflected in the browser!
+Visit `http://localhost:3000` to view the application in your browser.
 
-## Things to try:
+## Folder Structure
 
-- Create a new custom node inside `src/nodes/` (don't forget to export it from `src/nodes/index.ts`).
-- Change how things look by [overriding some of the built-in classes](https://reactflow.dev/learn/customization/theming#overriding-built-in-classes).
-- Add a layouting library to [position your nodes automatically](https://reactflow.dev/learn/layouting/layouting)
+```
+src/
+├── data/
+│   └── sampleFlow.ts        # Sample flow data for nodes and edges
+├── nodes/
+│   ├── PlaceholderNode.tsx  # Component for placeholder node types
+│   ├── PositionLoggerNode.tsx # Component to log and display node position
+│   ├── EllipseNode.tsx      # Component for ellipse nodes
+│   ├── RootIfNode.tsx       # Component for rootIf nodes
+│   ├── IfNode.tsx           # Component for if nodes
+│   ├── ElseNode.tsx         # Component for else nodes
+│   ├── ElseIfNode.tsx       # Component for elseif nodes
+│   ├── AddNode.tsx          # Component for add nodes
+│   ├── index.ts             # Node types registry
+│   └── types.ts             # Type definitions for nodes
+├── edges/
+│   ├── CustomEdge.tsx       # Custom edge component
+│   ├── index.ts             # Edge types registry
+├── App.tsx                  # Main React application
+├── main.tsx                 # Entry point of the application
+```
 
-## Resources
+## How to Use
 
-Links:
+1. **Adding Nodes**:
+   - Click the "➕ Add Node" button to create a new node.
+   - Provide a name and background color for the node.
 
-- [React Flow - Docs](https://reactflow.dev)
-- [React Flow - Discord](https://discord.com/invite/Bqt6xrs)
+2. **Editing Nodes**:
+   - Double-click a node to open the editing panel.
+   - Update node attributes like label, color, and logic.
 
-Learn:
+3. **Managing Edges**:
+   - Connect nodes by dragging from one node handle to another.
+   - Right-click on an edge to edit or delete it.
 
-- [React Flow – Custom Nodes](https://reactflow.dev/learn/customization/custom-nodes)
-- [React Flow – Layouting](https://reactflow.dev/learn/layouting/layouting)
+4. **Undo/Redo**:
+   - Use the "↩️ Undo" and "↪️ Redo" buttons to navigate the action history.
+
+5. **Save/Load Flow**:
+   - Save the current flow using the "Save Flow" button.
+   - Load a previously saved flow via the "Load Flow" button.
+
+## Acknowledgments
+
+ - **React Flow**: Used for building the node/edge graph interface.
+
+ - **Task Document**: Specifications provided by the client.
+
+## Contact
+
+For questions or issues, please contact:
+
+Name: Evan Pavone
+
+Email: EvanRPavone@gmail.com
+
+LinkedIn: [Evan Pavone | LinkedIn](https://www.linkedin.com/in/evan-pavone/)
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+---
+
+**Happy coding!**
